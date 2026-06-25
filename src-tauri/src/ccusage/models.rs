@@ -146,6 +146,8 @@ pub struct UsageResponse {
     pub totals: TokenTotals,
     pub models: Vec<ModelUsage>,
     pub daily: Vec<DailyUsage>,
+    #[serde(default)]
+    pub reasoning_reported: bool,
     pub generated_at: String,
     pub last_refreshed: String,
     pub stale: bool,

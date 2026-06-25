@@ -306,10 +306,18 @@ function App() {
           label="Cache tokens"
           value={formatTokens((usage?.totals.cacheCreationTokens ?? 0) + (usage?.totals.cacheReadTokens ?? 0))}
         />
-        <Metric label="Reasoning tokens" value={formatTokens(usage?.totals.reasoningOutputTokens ?? 0)} />
+        <Metric
+          label="Reasoning tokens"
+          value={
+            usage?.reasoningReported === false
+              ? "Not reported"
+              : formatTokens(usage?.totals.reasoningOutputTokens ?? 0)
+          }
+        />
       </section>
       <p className="summary-note">
-Total tokens include input, output, cache creation/read, and reasoning tokens when ccusage reports them.
+        Total tokens include input, output, cache creation/read, and reasoning tokens when ccusage reports them.
+        The all-agent ccusage report may omit reasoning even when provider-specific Codex output includes it.
       </p>
 
       <section className="content-grid">
@@ -328,10 +336,7 @@ Total tokens include input, output, cache creation/read, and reasoning tokens wh
             </select>
           </div>
           <div className="legend-row" aria-label="Usage bar legend">
-            <span><i className="legend-swatch input" />Input</span>
-            <span><i className="legend-swatch output" />Output</span>
-            <span><i className="legend-swatch cache" />Cache</span>
-            <span><i className="legend-swatch reasoning" />Reasoning</span>
+            <span><i className="legend-swatch token" />Token share</span>
             <span><i className="legend-swatch cost" />Cost share</span>
           </div>
 
@@ -340,7 +345,11 @@ Total tokens include input, output, cache creation/read, and reasoning tokens wh
             <div className="empty-state">No usage data found for this range.</div>
           ) : null}
           {sortedModels.length > 0 ? (
-            <ModelTable rows={sortedModels} totalCost={usage?.totals.costMicroUsd ?? null} />
+            <ModelTable
+              rows={sortedModels}
+              totalCost={usage?.totals.costMicroUsd ?? null}
+              totalTokens={usage?.totals.totalTokens ?? 0}
+            />
           ) : null}
         </div>
 
@@ -436,7 +445,15 @@ function Metric({ label, value, icon }: { label: string; value: string; icon?: R
   );
 }
 
-function ModelTable({ rows, totalCost }: { rows: ModelUsage[]; totalCost: number | null }) {
+function ModelTable({
+  rows,
+  totalCost,
+  totalTokens,
+}: {
+  rows: ModelUsage[];
+  totalCost: number | null;
+  totalTokens: number;
+}) {
   return (
     <div className="table-wrap">
       <table>
@@ -446,19 +463,13 @@ function ModelTable({ rows, totalCost }: { rows: ModelUsage[]; totalCost: number
             <th>Agent</th>
             <th>Input</th>
             <th>Output</th>
-            <th>Cache</th>
-            <th>Reasoning</th>
             <th>Total</th>
             <th>Cost</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => {
-            const inputShare = percent(row.inputTokens, row.totalTokens);
-            const outputShare = percent(row.outputTokens, row.totalTokens);
-            const cacheShare = percent(row.cacheCreationTokens + row.cacheReadTokens, row.totalTokens);
-            const cacheTokens = row.cacheCreationTokens + row.cacheReadTokens;
-            const reasoningShare = percent(row.reasoningOutputTokens, row.totalTokens);
+            const tokenShare = percent(row.totalTokens, totalTokens);
             const costShare = percent(row.costMicroUsd, totalCost);
             return (
               <tr key={`${row.agent}-${row.modelName}`}>
@@ -466,20 +477,15 @@ function ModelTable({ rows, totalCost }: { rows: ModelUsage[]; totalCost: number
                   <div className="model-name">{row.modelName}</div>
                   <div
                     className="token-split"
-                    title="Token mix: input, output, cache, and reasoning tokens"
+                    title={`${tokenShare.toFixed(1)}% of range tokens`}
                     aria-hidden="true"
                   >
-                    <span className="input" style={{ width: `${inputShare}%` }} />
-                    <span className="output" style={{ width: `${outputShare}%` }} />
-                    <span className="cache" style={{ width: `${cacheShare}%` }} />
-                    <span className="reasoning" style={{ width: `${reasoningShare}%` }} />
+                    <span className="token-share" style={{ width: `${tokenShare}%` }} />
                   </div>
                 </td>
                 <td>{row.agent}</td>
                 <td>{formatTokens(row.inputTokens)}</td>
                 <td>{formatTokens(row.outputTokens)}</td>
-                <td>{formatTokens(cacheTokens)}</td>
-                <td>{formatTokens(row.reasoningOutputTokens)}</td>
                 <td>{formatTokens(row.totalTokens)}</td>
                 <td>
                   <div className="cost-cell">

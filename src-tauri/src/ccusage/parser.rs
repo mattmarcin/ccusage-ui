@@ -11,6 +11,7 @@ pub fn parse_usage_json(raw: &str) -> Result<UsageResponse, AppError> {
     })?;
 
     let rows = report_rows(&root);
+    let reasoning_reported = reasoning_reported(&root);
     let mut model_map: HashMap<(String, String), ModelUsage> = HashMap::new();
     let mut daily_map: HashMap<String, DailyUsage> = HashMap::new();
 
@@ -75,6 +76,7 @@ pub fn parse_usage_json(raw: &str) -> Result<UsageResponse, AppError> {
         totals,
         models,
         daily,
+        reasoning_reported,
         generated_at: String::new(),
         last_refreshed: String::new(),
         stale: false,
@@ -85,6 +87,28 @@ pub fn parse_usage_json(raw: &str) -> Result<UsageResponse, AppError> {
     })
 }
 
+fn reasoning_reported(root: &Value) -> bool {
+    if root.get("totals").is_some_and(has_reasoning_field) {
+        return true;
+    }
+
+    report_rows(root).into_iter().any(|row| {
+        has_reasoning_field(row)
+            || row
+                .get("modelBreakdowns")
+                .and_then(Value::as_array)
+                .is_some_and(|items| items.iter().any(has_reasoning_field))
+            || row.get("models").is_some_and(|models| match models {
+                Value::Object(map) => map.values().any(has_reasoning_field),
+                Value::Array(items) => items.iter().any(has_reasoning_field),
+                _ => false,
+            })
+    })
+}
+
+fn has_reasoning_field(value: &Value) -> bool {
+    value.get("reasoningOutputTokens").is_some() || value.get("reasoning_output_tokens").is_some()
+}
 fn report_rows(root: &Value) -> Vec<&Value> {
     for key in ["daily", "weekly", "monthly", "sessions", "blocks"] {
         if let Some(rows) = root.get(key).and_then(Value::as_array) {
@@ -244,6 +268,7 @@ mod tests {
         }"#;
 
         let parsed = parse_usage_json(json).unwrap();
+        assert!(!parsed.reasoning_reported);
         assert_eq!(parsed.totals.cost_micro_usd, Some(12_300));
         assert_eq!(parsed.models.len(), 1);
         assert_eq!(parsed.models[0].model_name, "gpt-5.1-codex-max");
@@ -280,6 +305,7 @@ mod tests {
         }"#;
 
         let parsed = parse_usage_json(json).unwrap();
+        assert!(parsed.reasoning_reported);
         assert_eq!(parsed.totals.cost_micro_usd, Some(4_200));
         assert_eq!(parsed.models[0].agent, "codex");
         assert_eq!(parsed.models[0].totals.reasoning_output_tokens, 7);

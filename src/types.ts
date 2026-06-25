@@ -39,6 +39,7 @@ export interface UsageResponse {
   totals: TokenTotals;
   models: ModelUsage[];
   daily: DailyUsage[];
+  reasoningReported: boolean;
   generatedAt: string;
   lastRefreshed: string;
   stale: boolean;

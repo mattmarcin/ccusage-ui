@@ -374,6 +374,9 @@ th {
 .token-split .input {
   background: #317f76;
 }
+.token-split .token-share {
+  background: #317f76;
+}
 
 .token-split .output {
   background: #d98939;
@@ -411,6 +414,10 @@ th {
 }
 
 .legend-swatch.input {
+  background: #317f76;
+}
+
+.legend-swatch.token {
   background: #317f76;
 }
 
