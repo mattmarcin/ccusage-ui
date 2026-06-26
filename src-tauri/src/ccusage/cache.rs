@@ -44,7 +44,7 @@ pub fn cache_path(cache_dir: &Path) -> PathBuf {
 
 pub fn cache_key(request: &NormalizedUsageRequest, settings: &Settings) -> String {
     format!(
-        "daily|since={}|until={}|tz={}|offline={}|path={}",
+        "daily|since={}|until={}|tz={}|offline={}|path={}|claude_dirs={}",
         request.since.as_deref().unwrap_or("all"),
         request.until.as_deref().unwrap_or("all"),
         request.timezone,
@@ -53,7 +53,8 @@ pub fn cache_key(request: &NormalizedUsageRequest, settings: &Settings) -> Strin
             .ccusage_path
             .as_ref()
             .map(|path| path.to_string_lossy().to_string())
-            .unwrap_or_else(|| "auto".to_string())
+            .unwrap_or_else(|| "auto".to_string()),
+        settings.claude_config_dirs.as_deref().unwrap_or("auto")
     )
 }
 

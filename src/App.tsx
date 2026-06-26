@@ -56,6 +56,7 @@ function detectedTimezone(): string {
 function emptySettings(): SettingsDto {
   return {
     ccusagePath: null,
+    claudeConfigDirs: null,
     timezone: detectedTimezone(),
     cacheTtlSeconds: 300,
     offline: true,
@@ -533,6 +534,7 @@ function SettingsPanel({
     await onSave({
       ...draft,
       ccusagePath: draft.ccusagePath?.trim() || null,
+      claudeConfigDirs: draft.claudeConfigDirs?.trim() || null,
       timezone: draft.timezone?.trim() || null,
     });
     setSaving(false);
@@ -554,6 +556,14 @@ function SettingsPanel({
             value={draft.ccusagePath ?? ""}
             placeholder="Auto-detect"
             onChange={(event) => setDraft({ ...draft, ccusagePath: event.target.value })}
+          />
+        </label>
+        <label>
+          Claude config dirs
+          <input
+            value={draft.claudeConfigDirs ?? ""}
+            placeholder="C:\\Users\\m\\.claude,C:\\Users\\m\\.claude-alt"
+            onChange={(event) => setDraft({ ...draft, claudeConfigDirs: event.target.value })}
           />
         </label>
         <label>

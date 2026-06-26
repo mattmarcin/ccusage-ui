@@ -29,7 +29,7 @@ pub async fn run_daily_report(
     })?;
     let ccusage_version = ccusage_version(&executable).await.ok();
     let args = build_daily_args(settings, request);
-    let output = run_command(&executable, &args).await?;
+    let output = run_command(&executable, &args, settings.claude_config_dirs.as_deref()).await?;
 
     Ok(CcusageRun {
         stdout: output.stdout,
@@ -65,7 +65,7 @@ pub fn build_daily_args(settings: &Settings, request: &NormalizedUsageRequest) -
 }
 
 pub async fn ccusage_version(path: &Path) -> Result<String, AppError> {
-    let output = run_command(path, &["--version".to_string()]).await?;
+    let output = run_command(path, &["--version".to_string()], None).await?;
     Ok(output.stdout.trim().to_string())
 }
 
@@ -93,8 +93,20 @@ struct CapturedOutput {
     stderr: Option<String>,
 }
 
-async fn run_command(path: &Path, args: &[String]) -> Result<CapturedOutput, AppError> {
-    let child = Command::new(path)
+async fn run_command(
+    path: &Path,
+    args: &[String],
+    claude_config_dirs: Option<&str>,
+) -> Result<CapturedOutput, AppError> {
+    let mut command = Command::new(path);
+    if let Some(dirs) = claude_config_dirs
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        command.env("CLAUDE_CONFIG_DIR", dirs);
+    }
+
+    let child = command
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

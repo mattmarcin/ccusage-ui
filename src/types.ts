@@ -51,6 +51,7 @@ export interface UsageResponse {
 
 export interface SettingsDto {
   ccusagePath?: string | null;
+  claudeConfigDirs?: string | null;
   timezone?: string | null;
   cacheTtlSeconds: number;
   offline: boolean;
@@ -60,6 +61,7 @@ export interface SettingsDto {
 
 export interface SettingsPatch {
   ccusagePath?: string | null;
+  claudeConfigDirs?: string | null;
   timezone?: string | null;
   cacheTtlSeconds?: number;
   offline?: boolean;

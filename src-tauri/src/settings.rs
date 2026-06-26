@@ -11,6 +11,7 @@ const SETTINGS_FILE: &str = "settings.json";
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     pub ccusage_path: Option<PathBuf>,
+    pub claude_config_dirs: Option<String>,
     pub timezone: Option<String>,
     pub cache_ttl_seconds: u64,
     pub offline: bool,
@@ -22,6 +23,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             ccusage_path: None,
+            claude_config_dirs: None,
             timezone: None,
             cache_ttl_seconds: 300,
             offline: true,
@@ -35,6 +37,7 @@ impl Default for Settings {
 #[serde(rename_all = "camelCase")]
 pub struct SettingsDto {
     pub ccusage_path: Option<String>,
+    pub claude_config_dirs: Option<String>,
     pub timezone: Option<String>,
     pub cache_ttl_seconds: u64,
     pub offline: bool,
@@ -48,6 +51,7 @@ impl From<Settings> for SettingsDto {
             ccusage_path: value
                 .ccusage_path
                 .map(|path| path.to_string_lossy().to_string()),
+            claude_config_dirs: value.claude_config_dirs,
             timezone: value.timezone,
             cache_ttl_seconds: value.cache_ttl_seconds,
             offline: value.offline,
@@ -62,6 +66,8 @@ impl From<Settings> for SettingsDto {
 pub struct SettingsPatch {
     #[serde(default)]
     pub ccusage_path: Option<Option<String>>,
+    #[serde(default)]
+    pub claude_config_dirs: Option<Option<String>>,
     #[serde(default)]
     pub timezone: Option<Option<String>>,
     #[serde(default)]
@@ -109,6 +115,17 @@ pub fn apply_patch(settings: &mut Settings, patch: SettingsPatch) -> Result<(), 
         settings.ccusage_path = path.and_then(|value| {
             let trimmed = value.trim();
             (!trimmed.is_empty()).then(|| PathBuf::from(trimmed))
+        });
+    }
+    if let Some(dirs) = patch.claude_config_dirs {
+        settings.claude_config_dirs = dirs.and_then(|value| {
+            let cleaned = value
+                .split(',')
+                .map(str::trim)
+                .filter(|part| !part.is_empty())
+                .collect::<Vec<_>>()
+                .join(",");
+            (!cleaned.is_empty()).then_some(cleaned)
         });
     }
     if let Some(timezone) = patch.timezone {

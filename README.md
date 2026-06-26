@@ -11,7 +11,7 @@ ccusage UI is a Tauri v2 app with a Rust backend and React/TypeScript frontend. 
 - Cost, total, input, output, cache, and reasoning token summaries.
 - Daily trend chart.
 - Light and dark mode.
-- Configurable `ccusage` path, timezone, cache TTL, and offline pricing mode.
+- Configurable `ccusage` path, Claude config directories, timezone, cache TTL, and offline pricing mode.
 - Rust-only process execution; the frontend does not get shell access.
 
 ## Privacy
@@ -28,6 +28,14 @@ The displayed costs come from `ccusage`; ccusage UI does not calculate model pri
 - `ccusage` installed and available on PATH, or configured in the app settings.
 
 On Windows, the app also checks common install locations such as `~\.bun\bin\ccusage.exe`.
+
+If you use multiple Claude Code accounts with separate config directories, set `Claude config dirs` in the app settings to a comma-separated list such as:
+
+```text
+C:\Users\m\.claude,C:\Users\m\.claude-alt
+```
+
+The app passes that value to `ccusage` as `CLAUDE_CONFIG_DIR`.
 
 ## Development
 
