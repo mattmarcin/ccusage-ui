@@ -248,7 +248,7 @@ h2 {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 18px;
 }
@@ -386,9 +386,6 @@ th {
   background: #8a958e;
 }
 
-.token-split .reasoning {
-  background: #765db4;
-}
 
 .legend-row {
   display: flex;
@@ -429,9 +426,6 @@ th {
   background: #8a958e;
 }
 
-.legend-swatch.reasoning {
-  background: #765db4;
-}
 
 .legend-swatch.cost {
   background: #4b68b8;

@@ -307,18 +307,10 @@ function App() {
           label="Cache tokens"
           value={formatTokens((usage?.totals.cacheCreationTokens ?? 0) + (usage?.totals.cacheReadTokens ?? 0))}
         />
-        <Metric
-          label="Reasoning tokens"
-          value={
-            usage?.reasoningReported === false
-              ? "Not reported"
-              : formatTokens(usage?.totals.reasoningOutputTokens ?? 0)
-          }
-        />
+
       </section>
       <p className="summary-note">
-        Total tokens include input, output, cache creation/read, and reasoning tokens when ccusage reports them.
-        The all-agent ccusage report may omit reasoning even when provider-specific Codex output includes it.
+        Total tokens are reported by ccusage and can include cache tokens beyond visible input and output.
       </p>
 
       <section className="content-grid">
